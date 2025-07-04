@@ -1,23 +1,44 @@
 const TelegramBot = require('node-telegram-bot-api');
-const fs = require('fs');
-const path = require('path');
+const express = require('express');
+const app = express();
 
 const TOKEN = '7762777684:AAFngHPgagA7-IurRcOWf1ZjiW7OlpnSxfM';
-const bot = new TelegramBot(TOKEN, { polling: true });
+const bot = new TelegramBot(TOKEN, { polling: false });
 
-const MAIN_ADMIN = 'darkdragonsx';
-let moderators = [];
+app.use(express.json());
 
-// /start
-bot.onText(/\/start/, (msg) => {
-  const user = msg.from.username || 'مستخدم';
-  bot.sendMessage(msg.chat.id, `👋 مرحباً @${user}! هذا بوت سيده ${MAIN_ADMIN} 👑`);
+app.post(`/bot${TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
 });
 
-// تحميل جميع ملفات الأوامر من مجلد commands
-const commandsDir = path.join(__dirname, 'commands');
-fs.readdirSync(commandsDir).forEach(file => {
-  if (file.endsWith('.js')) {
-    require(path.join(commandsDir, file))(bot, MAIN_ADMIN, moderators);
+app.get('/', (req, res) => {
+  res.send('✅ البوت يعمل الآن على Render');
+});
+
+// أوامر البوت
+bot.onText(/\/start/, (msg) => {
+  const name = msg.from.username || msg.from.first_name;
+  bot.sendMessage(msg.chat.id, `👋 أهلاً بك @${name}, أنا بوت سيدك 👑 darkdragonsx`);
+});
+
+// استماع لأي رسالة
+bot.on('message', (msg) => {
+  if (!msg.text.startsWith('/')) {
+    bot.sendMessage(msg.chat.id, 'أرسل /start أو /مساعد لرؤية الأوامر 🔧');
   }
+});
+
+// تشغيل السيرفر
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Bot server running on port ${PORT}`);
+
+  // إعداد Webhook تلقائياً
+  const url = `https://${process.env.RENDER_EXTERNAL_HOSTNAME}/bot${TOKEN}`;
+  bot.setWebHook(url).then(() => {
+    console.log(`✅ Webhook set to: ${url}`);
+  }).catch((err) => {
+    console.error('❌ خطأ في Webhook:', err.message);
+  });
 });
