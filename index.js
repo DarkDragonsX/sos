@@ -14,9 +14,10 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(msg.chat.id, `👋 مرحباً @${user}! هذا بوت سيده ${MAIN_ADMIN} 👑`);
 });
 
-// تحميل جميع ملفات الأوامر
+// تحميل جميع ملفات الأوامر من مجلد commands
 const commandsDir = path.join(__dirname, 'commands');
 fs.readdirSync(commandsDir).forEach(file => {
   if (file.endsWith('.js')) {
     require(path.join(commandsDir, file))(bot, MAIN_ADMIN, moderators);
+  }
 });
