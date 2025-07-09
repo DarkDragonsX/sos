@@ -5,8 +5,7 @@ from telegram.ext import CommandHandler, MessageHandler, filters, ContextTypes
 
 REPLIES_FILE = os.path.join("commander", "replies.json")
 TEMP_STATE = {}
-
-ADMIN_ID = 8196476936  # ✅ تأكد أن هذا هو معرفك الصحيح
+ADMIN_ID = 8196476936
 
 def load_replies():
     if os.path.exists(REPLIES_FILE):
@@ -25,14 +24,12 @@ async def add_random_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if not is_admin(user_id):
         return await update.message.reply_text("🚫 هذا الأمر مخصص للإدارة فقط.")
-    
     TEMP_STATE[user_id] = {"step": "ask_keyword"}
     await update.message.reply_text("📝 أرسل الكلمة التي تريدني أن أرد عليها:")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     message = update.message.text.strip()
-
     if user_id not in TEMP_STATE:
         return
 
@@ -44,8 +41,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         state["responses"] = []
         state["step"] = "collect_replies"
         await update.message.reply_text("💬 أرسل الردود الآن، وعندما تنتهي اكتب: احفظ")
-        return
-
     elif state["step"] == "collect_replies":
         if message.lower() == "احفظ":
             keyword = state["keyword"]
@@ -65,12 +60,9 @@ async def show_reply_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if not is_admin(user_id):
         return await update.message.reply_text("🚫 هذا الأمر مخصص للإدارة فقط.")
-
     replies = load_replies()
     if not replies:
-        await update.message.reply_text("📭 لا توجد أي ردود محفوظة بعد.")
-        return
-
+        return await update.message.reply_text("📭 لا توجد أي ردود محفوظة بعد.")
     text = "📚 قائمة الردود المحفوظة:\n\n"
     for word, resp_list in replies.items():
         text += f"🔹 *{word}*:\n"
@@ -83,12 +75,9 @@ async def delete_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if not is_admin(user_id):
         return await update.message.reply_text("🚫 هذا الأمر مخصص للإدارة فقط.")
-    
     args = context.args
     if not args:
-        await update.message.reply_text("❗ اكتب الكلمة التي تريد حذفها.\nمثال: `/حذف_رد سلام`", parse_mode="Markdown")
-        return
-
+        return await update.message.reply_text("❗ اكتب الكلمة التي تريد حذفها.\nمثال: `/حذف_رد سلام`", parse_mode="Markdown")
     keyword = " ".join(args)
     replies = load_replies()
     if keyword in replies:
