@@ -1,13 +1,16 @@
-ncio
+import os
 import random
+import asyncio
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# توكن البوت من متغير بيئي
-TOKEN = os.getenv("7762777684:AAFngHPgagA7-IurRcOWf1ZjiW7OlpnSxfM")
+# ✅ توكن البوت مباشر (لا حاجة لاستخدام os.getenv)
+TOKEN = "7762777684:AAFngHPgagA7-IurRcOWf1ZjiW7OlpnSxfM"
+
+# 🧑‍💻 معرف الأدمن
 ADMIN_ID = 8196476936
 
-# رسائل بدء التشغيل
+# رسائل بدء تشغيل مخصصة للأدمن والمستخدمين
 admin_start_messages = [
     "🤖 تم تشغيل بوت السيد أيمن العظيم 🔥👑",
     "⚡ بوت النخبة شغّال الآن، حيّاكم الله!",
@@ -20,14 +23,10 @@ user_start_messages = [
     "بوت الدفاع الإلكتروني هنا في الخدمة! 💻🛡️"
 ]
 
-# مجلد السكربتات
 COMMANDER_FOLDER = "commander"
-
-# الرسائل المخصصة أثناء التشغيل
 admin_custom_messages = []
 user_custom_messages = []
 
-# دالة /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if user_id == ADMIN_ID:
@@ -36,7 +35,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = random.choice(user_custom_messages or user_start_messages)
     await update.message.reply_text(msg)
 
-# أمر لتشغيل كل سكربتات مجلد commander
 async def run_scripts(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return await update.message.reply_text("🚫 هذا الأمر خاص بالإدارة فقط.")
@@ -52,7 +50,6 @@ async def run_scripts(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 result += f"❌ خطأ في {file}: {e}\n"
     await update.message.reply_text(result)
 
-# إضافة رسالة تشغيل للإدارة
 async def add_admin_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
@@ -61,14 +58,12 @@ async def add_admin_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
         admin_custom_messages.append(msg)
         await update.message.reply_text("✅ تمت إضافة رسالة تشغيل إدارية.")
 
-# حذف رسائل الإدارة
 async def clear_admin_msgs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
     admin_custom_messages.clear()
     await update.message.reply_text("🧹 تم حذف جميع رسائل التشغيل الإدارية.")
 
-# إضافة رسالة تشغيل للمستخدم
 async def add_user_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
@@ -77,14 +72,12 @@ async def add_user_msg(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_custom_messages.append(msg)
         await update.message.reply_text("✅ تمت إضافة رسالة تشغيل للمستخدم.")
 
-# حذف رسائل المستخدم
 async def clear_user_msgs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
     user_custom_messages.clear()
     await update.message.reply_text("🧹 تم حذف جميع رسائل المستخدم العادية.")
 
-# عرض قائمة السكربتات
 async def list_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     files = [f for f in os.listdir(COMMANDER_FOLDER) if f.endswith(".py")]
     if files:
@@ -92,7 +85,6 @@ async def list_commands(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("📂 لا توجد ملفات أوامر حالياً.")
 
-# الدالة الرئيسية
 async def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
