@@ -24,12 +24,14 @@ async def add_random_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if not is_admin(user_id):
         return await update.message.reply_text("🚫 هذا الأمر مخصص للإدارة فقط.")
+
     TEMP_STATE[user_id] = {"step": "ask_keyword"}
     await update.message.reply_text("📝 أرسل الكلمة التي تريدني أن أرد عليها:")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     message = update.message.text.strip()
+
     if user_id not in TEMP_STATE:
         return
 
@@ -41,6 +43,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         state["responses"] = []
         state["step"] = "collect_replies"
         await update.message.reply_text("💬 أرسل الردود الآن، وعندما تنتهي اكتب: احفظ")
+        return
+
     elif state["step"] == "collect_replies":
         if message.lower() == "احفظ":
             keyword = state["keyword"]
@@ -60,14 +64,21 @@ async def show_reply_list(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if not is_admin(user_id):
         return await update.message.reply_text("🚫 هذا الأمر مخصص للإدارة فقط.")
+
     replies = load_replies()
     if not replies:
-        return await update.message.reply_text("📭 لا توجد أي ردود محفوظة بعد.")
-    text = "📚 قائمة الردود المحفوظة:\n\n"
+        await update.message.reply_text("📭 لا توجد أي ردود محفوظة بعد.")
+        return
+
+    text = "📚 قائمة الردود المحفوظة:
+
+"
     for word, resp_list in replies.items():
-        text += f"🔹 *{word}*:\n"
+        text += f"🔹 *{word}*:
+"
         for resp in resp_list:
-            text += f"   - {resp}\n"
+            text += f"   - {resp}
+"
         text += "\n"
     await update.message.reply_text(text, parse_mode="Markdown")
 
@@ -75,9 +86,13 @@ async def delete_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if not is_admin(user_id):
         return await update.message.reply_text("🚫 هذا الأمر مخصص للإدارة فقط.")
+
     args = context.args
     if not args:
-        return await update.message.reply_text("❗ اكتب الكلمة التي تريد حذفها.\nمثال: `/حذف_رد سلام`", parse_mode="Markdown")
+        await update.message.reply_text("❗ اكتب الكلمة التي تريد حذفها.
+مثال: `/حذف_رد سلام`", parse_mode="Markdown")
+        return
+
     keyword = " ".join(args)
     replies = load_replies()
     if keyword in replies:
@@ -87,8 +102,8 @@ async def delete_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("⚠️ لا توجد ردود محفوظة لهذه الكلمة.")
 
-def register_handlers(application):
-    application.add_handler(CommandHandler("اضف_رد_عشوائي", add_random_reply))
-    application.add_handler(CommandHandler("عرض_القائمة", show_reply_list))
-    application.add_handler(CommandHandler("حذف_رد", delete_reply))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+def register_handlers(app):
+    app.add_handler(CommandHandler("اضف_رد_عشوائي", add_random_reply))
+    app.add_handler(CommandHandler("عرض_القائمة", show_reply_list))
+    app.add_handler(CommandHandler("حذف_رد", delete_reply))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
